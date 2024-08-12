@@ -3,6 +3,9 @@ from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from docx import Document
+from docx.shared import RGBColor
+from io import BytesIO
+from docx.oxml import OxmlElement, ns
 
 # Definición de las dimensiones y categorías
 dimensiones = ["Mercado", "Servicio", "Producto", "Datos", "Tecnología", "Aliados", "Capacidades"]
@@ -11,8 +14,6 @@ categorias = ["Núcleo integrado\n(dentro de la organización)", "Servicios digi
 
 # Inicialización de un diccionario para almacenar las respuestas
 matriz = {dim: {cat: "" for cat in categorias} for dim in dimensiones}
-
-
 
 # Iteración para pedir al usuario que complete la matriz
 for dim in dimensiones:
@@ -95,10 +96,77 @@ for row in ws.iter_rows():
 output_file = "matriz_completada_formateada.xlsx"
 wb.save(output_file)
 
-# Generar el informe en Word (opcional)
-doc = Document()
-doc.add_heading('Informe de Matriz Completada', 0)
+# Crear o abrir el documento Word
+output_word = "informe_matriz_con_tabla.docx"
+try:
+    doc = Document(output_word)  # Intentar abrir el archivo existente
+except Exception:
+    doc = Document()  # Crear un nuevo documento si no existe
 
+# Agregar el título principal
+doc.add_heading('Informe de Matriz Completada', level=0)
+
+# Agregar un espacio de dos líneas antes de la tabla
+doc.add_paragraph()  # Primer espacio
+doc.add_paragraph()  # Segundo espacio
+
+# Agregar el título de la tabla
+doc.add_heading('Formato final', level=1)
+
+# Leer el archivo de Excel y agregar la tabla al documento Word
+excel_stream = BytesIO()
+wb.save(excel_stream)
+excel_stream.seek(0)
+
+# Agregar la tabla de Excel al documento Word
+df_table = pd.read_excel(excel_stream, sheet_name='Matriz Completada')
+
+# Convertir el DataFrame en una tabla para el documento Word
+table = doc.add_table(rows=1, cols=len(df_table.columns))
+
+# Estilo de la tabla
+table.style = 'Table Grid'  # Aplica un estilo de tabla con bordes
+
+# Encabezados de la tabla
+hdr_cells = table.rows[0].cells
+for i, col_name in enumerate(df_table.columns):
+    hdr_cells[i].text = col_name
+
+# Filas de la tabla
+for index, row in df_table.iterrows():
+    row_cells = table.add_row().cells
+    for i, value in enumerate(row):
+        row_cells[i].text = str(value)
+
+# Aplicar color azul a la primera columna y texto blanco y negrita
+for row in table.rows:
+    cell = row.cells[0]
+    cell_fill = OxmlElement('w:shd')
+    cell_fill.set(ns.qn('w:fill'), '4472C4')  # Azul
+    cell._element.get_or_add_tcPr().append(cell_fill)
+    
+    cell_text = cell.paragraphs[0]
+    for run in cell_text.runs:
+        run.font.color.rgb = RGBColor(255, 255, 255)  # Blanco
+        run.font.bold = True  # Negrita
+
+# Aplicar bordes a la tabla
+for row in table.rows:
+    for cell in row.cells:
+        cell_borders = OxmlElement('w:tcBorders')
+        for border_name in ['top', 'left', 'bottom', 'right']:
+            border = OxmlElement(f'w:{border_name}')
+            border.set(ns.qn('w:val'), 'single')
+            border.set(ns.qn('w:space'), '0')
+            border.set(ns.qn('w:sz'), '4')
+            cell_borders.append(border)
+        cell._element.get_or_add_tcPr().append(cell_borders)
+
+# Agregar un espacio de dos líneas después de la tabla
+doc.add_paragraph()  # Primer espacio
+doc.add_paragraph()  # Segundo espacio
+
+# Agregar el contenido adicional (si existe) después de la tabla
 for dim in dimensiones:
     doc.add_heading(dim, level=1)
     for cat in categorias:
@@ -110,7 +178,6 @@ for dim in dimensiones:
                 doc.add_paragraph(elem, style='ListBullet')
 
 # Guardar el documento Word
-output_word = "informe_matriz.docx"
 doc.save(output_word)
 
-print(f"¡Matriz completada y formateada! El archivo Excel '{output_file}' y el informe Word '{output_word}' se han guardado exitosamente.")
+print(f"¡Informe actualizado con la tabla de Excel! El archivo Word '{output_word}' se ha guardado exitosamente.")
