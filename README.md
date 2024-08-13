@@ -7,4 +7,5 @@ A veces sera necesario ejecutar los siguientes comandos:
 ```
 pip install python-docx
 pip install openpyxl
+pip install pandas
 ```
