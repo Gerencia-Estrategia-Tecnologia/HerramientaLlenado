@@ -141,23 +141,36 @@ doc.add_paragraph("Aquí se deja este espacio para los comentarios…", style='N
 doc.add_heading('Contenido General', level=1)
 content_general_heading = doc.paragraphs[-1]
 content_general_heading.runs[0].font.size = Pt(16)
-doc.add_paragraph("Aquí se deja este espacio para los comentarios…", style='Normal')
 
 # Iterar sobre las dimensiones y categorías
 for dim in dimensiones:
-    doc.add_heading(dim, level=2).runs[0].font.size = Pt(13)
+    # Crear un encabezado de nivel 2 para cada dimensión con tamaño de fuente 13
+    heading_dim = doc.add_heading(dim, level=2)
+    heading_dim.runs[0].font.size = Pt(13)
+    
+    # Aplicar sangría para los títulos de las dimensiones
+    heading_dim.paragraph_format.left_indent = Pt(10)  # Sangría izquierda
+
     for cat in categorias:
         contenido = matriz[dim][cat]
-        heading = doc.add_heading(f'{cat}:', level=3)
-        heading.runs[0].font.size = Pt(13)
-        doc.add_paragraph("Aquí se deja este espacio para los comentarios…", style='Normal')
+        # Crear un encabezado de nivel 3 para cada categoría con tamaño de fuente 13
+        heading_cat = doc.add_heading(f'{cat}:', level=3)
+        heading_cat.runs[0].font.size = Pt(13)
+        
+        # Aplicar sangría para los títulos de las categorías
+        heading_cat.paragraph_format.left_indent = Pt(10)  # Sangría mayor que la de las dimensiones
+        
+        # Insertar contenido debajo de cada categoría
         if contenido:
             elementos = [elem.strip() for elem in contenido.split(',') if elem.strip()]  # Filtrar elementos vacíos
             for elem in elementos:
+                # Crear un párrafo con viñeta para cada elemento
                 p = doc.add_paragraph(elem, style='ListBullet')
-                p.paragraph_format.left_indent = Pt(40)  # Aumentar la sangría
-                p.paragraph_format.space_before = Pt(6)  # Espacio antes de cada elemento
-                p.paragraph_format.space_after = Pt(6)   # Espacio después de cada elemento
+                
+                # Ajustar formato de párrafo
+                p.paragraph_format.left_indent = Pt(50)  # Aumentar la sangría de las viñetas
+                p.paragraph_format.space_before = Pt(6)  # Espacio antes de cada viñeta
+                p.paragraph_format.space_after = Pt(6)   # Espacio después de cada viñeta
 
 # Aplicar un mayor interlineado a todo el documento
 for paragraph in doc.paragraphs:
@@ -167,6 +180,5 @@ for paragraph in doc.paragraphs:
 # Guardar el documento Word
 output_word = "informe_matriz.docx"
 doc.save(output_word)
-
 
 print(f"¡Matriz completada y formateada! El archivo Excel '{output_file}' y el informe Word '{output_word}' se han guardado exitosamente.")
