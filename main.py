@@ -88,13 +88,14 @@ doc.add_paragraph("Aquí se deja este espacio para los comentarios…", style='N
 # Insertar título "Formato Final" con tamaño de fuente 16
 format_final_heading = doc.add_heading('Formato Final', level=1)
 format_final_heading.runs[0].font.size = Pt(16)
+format_final_heading.runs[0].font.color.rgb = RGBColor(0, 0, 0)  # Cambiar color a negro
 
 # Insertar la tabla con los datos de la matriz en el documento debajo de "Formato Final" y antes de los comentarios
 table = doc.add_table(rows=len(df)+1, cols=len(df.columns)+1)
 
 # Llenar los encabezados de la tabla
 hdr_cells = table.rows[0].cells
-hdr_cells[0].text = 'Dimensiones / Categorías'
+hdr_cells[0].text = 'Dimensiones'
 for i, cat in enumerate(categorias):
     hdr_cells[i+1].text = cat
 
@@ -140,37 +141,34 @@ doc.add_paragraph("Aquí se deja este espacio para los comentarios…", style='N
 # Agregar el contenido general con tamaño de fuente 16
 doc.add_heading('Contenido General', level=1)
 content_general_heading = doc.paragraphs[-1]
+content_general_heading.runs[0].font.color.rgb = RGBColor(0, 0, 0)  # Cambiar color a negro
 content_general_heading.runs[0].font.size = Pt(16)
+doc.add_paragraph("Aquí se deja este espacio para los comentarios…", style='Normal')
 
 # Iterar sobre las dimensiones y categorías
 for dim in dimensiones:
-    # Crear un encabezado de nivel 2 para cada dimensión con tamaño de fuente 13
     heading_dim = doc.add_heading(dim, level=2)
     heading_dim.runs[0].font.size = Pt(13)
-    
-    # Aplicar sangría para los títulos de las dimensiones
+    heading_dim.runs[0].font.color.rgb = RGBColor(0, 0, 0)  # Cambiar color a negro
     heading_dim.paragraph_format.left_indent = Pt(10)  # Sangría izquierda
 
     for cat in categorias:
         contenido = matriz[dim][cat]
-        # Crear un encabezado de nivel 3 para cada categoría con tamaño de fuente 13
-        heading_cat = doc.add_heading(f'{cat}:', level=3)
-        heading_cat.runs[0].font.size = Pt(13)
-        
-        # Aplicar sangría para los títulos de las categorías
-        heading_cat.paragraph_format.left_indent = Pt(10)  # Sangría mayor que la de las dimensiones
-        
-        # Insertar contenido debajo de cada categoría
+        heading = doc.add_heading(f'{cat}:', level=3)
+        heading.runs[0].font.size = Pt(13)
+        heading.runs[0].font.color.rgb = RGBColor(0, 0, 0)  # Cambiar color a negro
+        heading.paragraph_format.left_indent = Pt(10)
+
+        p = doc.add_paragraph("Aquí se deja este espacio para los comentarios…", style='Normal')
+        p.paragraph_format.left_indent = Pt(10)
+
         if contenido:
-            elementos = [elem.strip() for elem in contenido.split(',') if elem.strip()]  # Filtrar elementos vacíos
+            elementos = [elem.strip() for elem in contenido.split(',') if elem.strip()]
             for elem in elementos:
-                # Crear un párrafo con viñeta para cada elemento
                 p = doc.add_paragraph(elem, style='ListBullet')
-                
-                # Ajustar formato de párrafo
-                p.paragraph_format.left_indent = Pt(50)  # Aumentar la sangría de las viñetas
-                p.paragraph_format.space_before = Pt(6)  # Espacio antes de cada viñeta
-                p.paragraph_format.space_after = Pt(6)   # Espacio después de cada viñeta
+                p.paragraph_format.left_indent = Pt(50)
+                p.paragraph_format.space_before = Pt(6)
+                p.paragraph_format.space_after = Pt(6)
 
 # Aplicar un mayor interlineado a todo el documento
 for paragraph in doc.paragraphs:
